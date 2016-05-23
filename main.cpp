@@ -1,15 +1,20 @@
-//
-//  main.cpp
-//  QRcodeCPP
-//
-//  Created by 范志方 on 16/5/23.
-//  Copyright © 2016年 范志方. All rights reserved.
-//
-
+#include <cv.h>
+#include <highgui.h>
 #include <iostream>
-
-int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
+//#include <string>
+using namespace std;
+using namespace cv;
+int main(int argc, char** argv) {
+    if (argc <= 1) {
+        cerr << "Illegal argument" << endl;
+        exit(1);
+    }
+    string file = argv[1];
+    cout << file << endl;
+    Mat src = imread(file);
+    flip(src.t(), src, 1);
+    namedWindow("code", 1);
+    imshow("code.png", src);
+    waitKey(0);
     return 0;
 }

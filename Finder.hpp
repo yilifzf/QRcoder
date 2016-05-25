@@ -1,13 +1,13 @@
 //
-//  Detector.hpp
+//  Finder.hpp
 //  QRcodeCPP
 //
 //  Created by 范志方 on 16/5/24.
 //  Copyright © 2016年 范志方. All rights reserved.
 //
 
-#ifndef Detector_hpp
-#define Detector_hpp
+#ifndef Finder_hpp
+#define Finder_hpp
 #include <cv.h>
 #include <vector>
 #include <stdio.h>
@@ -33,4 +33,4 @@ public:
     vector<FinderPoint>& get_points();
     bool find();
 };
-#endif /* Detector_hpp */
+#endif /* Finder_hpp */

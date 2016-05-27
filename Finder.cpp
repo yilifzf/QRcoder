@@ -7,14 +7,14 @@
 //
 
 #include "Finder.hpp"
-Detetcor::Detetcor(Mat& img) : image(img), hasSkipped(false){
+Finder::Finder(Mat& img) : image(img), hasSkipped(false){
 }
 
-vector<FinderPoint>& Detetcor::get_points() {
+vector<FinderPoint>& Finder::get_points() {
     return finderCenters;
 }
 
-bool Detetcor::find() {
+FinderResult Finder::find() {
     bool done = false;
     int skipRows = 3;
     int stateCount[5] = {0};
@@ -126,10 +126,11 @@ bool Detetcor::find() {
             }
         }
     }
-    
-    return false;
+    vector<FinderPoint> ordered = orderBestPatterns();
+    FinderResult result = FinderResult(ordered);
+    return result;
 }
-bool Detetcor::checkRatio(int* stateCount) {
+bool Finder::checkRatio(int* stateCount) {
     int totalFinderSize = 0;
     for(int i=0;i<5;i++) {
         int count = stateCount[i];
@@ -154,7 +155,7 @@ bool Detetcor::checkRatio(int* stateCount) {
                    (abs(moduleSize - stateCount[4])) < maxVariance);
     return retVal;
 }
-bool Detetcor::handlePossibleCenter(int* stateCount, int row, int col) {
+bool Finder::handlePossibleCenter(int* stateCount, int row, int col) {
     int stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] + stateCount[4];
     float centerJ = (float)(col - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f;
     float centerI = crossCheckVertical(row, (int)centerJ, stateCount[2], stateCountTotal);
@@ -170,8 +171,8 @@ bool Detetcor::handlePossibleCenter(int* stateCount, int row, int col) {
         }
         if (!found) {
             FinderPoint newCenter = FinderPoint(centerJ, centerI);
-            pts.push_back(Point(centerJ, centerI));
-            printf("Created new center: (%f, %f)\n", newCenter.get_x(), newCenter.get_y());
+            pts.push_back(Point2f(centerJ, centerI));
+            printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
             finderCenters.push_back(newCenter);
         }
         return true;
@@ -179,7 +180,7 @@ bool Detetcor::handlePossibleCenter(int* stateCount, int row, int col) {
     return false;
 }
 
-float Detetcor::crossCheckVertical(int startI, int centerJ, int maxCount, int
+float Finder::crossCheckVertical(int startI, int centerJ, int maxCount, int
                                    originalStateCountTotal) {
     int maxI = image.rows;
     int stateCount[5];
@@ -202,9 +203,9 @@ float Detetcor::crossCheckVertical(int startI, int centerJ, int maxCount, int
         stateCount[0]++;
         i--;
     }
-    if (stateCount[0] + stateCount[1] > maxCount) {
-        return 0.0/0.0;
-    }
+//    if (stateCount[0] + stateCount[1] > maxCount) {
+//        return 0.0/0.0;
+//    }
     //2. count black down from center
     i = startI + 1;
     while (i < maxI && image.at<uchar>(Point(centerJ, i)) < 128) {
@@ -219,18 +220,18 @@ float Detetcor::crossCheckVertical(int startI, int centerJ, int maxCount, int
         stateCount[4]++;
         i++;
     }
-    if (stateCount[0] + stateCount[1] > maxCount) {
+    if (stateCount[0] > maxCount && stateCount[1] > maxCount) {
         return 0.0/0.0;
     }
     
     return checkRatio(stateCount) ? (float)(i - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f : 0.0/0.0;
 }
 
-bool Detetcor::haveMultiplyConfirmedCenters() {
+bool Finder::haveMultiplyConfirmedCenters() {
     return false;
 }
 
-int Detetcor::getRowSkip() {
+int Finder::getRowSkip() {
     int max = finderCenters.size();
     if (max <= 1) {
         return 0;
@@ -238,6 +239,53 @@ int Detetcor::getRowSkip() {
     FinderPoint& firstCenter = finderCenters[0];
     FinderPoint& secondCenter = finderCenters[1];
     hasSkipped = true;
-    return (int)(abs(firstCenter.get_x() - secondCenter.get_x()) - abs(firstCenter.get_y()
-                                                                          - secondCenter.get_y()))/2;
+    return (int)(abs(firstCenter.getX() - secondCenter.getX()) - abs(firstCenter.getY()
+                                                                     - secondCenter.getY())) / 2;
+}
+
+vector<FinderPoint> Finder::orderBestPatterns() {
+    float abDistance = distance(finderCenters[0], finderCenters[1]);
+    float bcDistance = distance(finderCenters[1], finderCenters[2]);
+    float acDistance = distance(finderCenters[0], finderCenters[2]);
+
+    FinderPoint topLeft;
+    FinderPoint topRight;
+    FinderPoint bottomLeft;
+    // Assume one closest to other two is top left;
+    // topRight and bottomLeft will just be guesses below at first
+    if (bcDistance >= abDistance && bcDistance >= acDistance) {
+        topLeft = finderCenters[0];
+        topRight = finderCenters[1];
+        bottomLeft = finderCenters[2];
+    } else if (acDistance >= bcDistance && acDistance >= abDistance) {
+        topLeft = finderCenters[1];
+        topRight = finderCenters[0];
+        bottomLeft = finderCenters[2];
+    } else {
+        topLeft = finderCenters[2];
+        topRight = finderCenters[0];
+        bottomLeft = finderCenters[1];
+    }
+
+    // Use cross product to figure out which of other1/2 is the bottom left
+    // pattern. The vector "top-left -> bottom-left" x "top-left -> top-right"
+    // should yield a vector with positive z component
+    if ((bottomLeft.getY() - topLeft.getY()) * (topRight.getX() - topLeft.getX()) < (bottomLeft.getX()
+                                                                                         - topLeft.getX()) * (topRight.getY() - topLeft.getY())) {
+        FinderPoint temp = topRight;
+        topRight = bottomLeft;
+        bottomLeft = temp;
+    }
+
+    vector<FinderPoint> results(3);
+    results[0] = bottomLeft;
+    results[1] = topLeft;
+    results[2] = topRight;
+    return results;
+}
+
+float Finder::distance(FinderPoint& p1, FinderPoint& p2) {
+    float dx = p1.getX() - p2.getX();
+    float dy = p1.getY() - p2.getY();
+    return sqrt(dx * dx + dy * dy);
 }

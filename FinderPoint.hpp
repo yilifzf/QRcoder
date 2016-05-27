@@ -12,13 +12,14 @@
 #include <stdio.h>
 class FinderPoint {
 private:
-    const float _x;
-    const float _y;
+    float _x;
+    float _y;
 public:
     FinderPoint();
     FinderPoint(float x, float y);
-    float get_x();
-    float get_y();
+    float getX();
+    float getY();
     bool aboutEquals(float moduleSize, float i, float j);
+    float distance(FinderPoint p);
 };
 #endif /* FinderPoint_hpp */

@@ -7,3 +7,7 @@
 //
 
 #include "FinderResult.hpp"
+
+FinderResult::FinderResult(vector<FinderPoint> pts) : bottomLeft(pts[0]), topLeft(pts[1]), topRight(pts[2]){
+}
+

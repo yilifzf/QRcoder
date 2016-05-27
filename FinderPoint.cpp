@@ -6,6 +6,7 @@
 //  Copyright © 2016年 范志方. All rights reserved.
 //
 
+#include <math.h>
 #include "FinderPoint.hpp"
 FinderPoint::FinderPoint():_x(0), _y(0) {
 }
@@ -13,12 +14,18 @@ FinderPoint::FinderPoint():_x(0), _y(0) {
 FinderPoint::FinderPoint(float x, float y) : _x(x), _y(y) {
 }
 
-float FinderPoint::get_x() {
+float FinderPoint::getX() {
     return _x;
 }
-float FinderPoint::get_y() {
+float FinderPoint::getY() {
     return _y;
 }
 bool FinderPoint::aboutEquals(float moduleSize, float i, float j) {
     return abs(i - _y) <= moduleSize && abs(j - _x) <= moduleSize;
+}
+
+float FinderPoint::distance(FinderPoint p) {
+    float xDiff = abs(this->_x - p.getX());
+    float yDiff = abs(this->_y - p.getY());
+    return sqrt(xDiff*xDiff + yDiff*yDiff);
 }

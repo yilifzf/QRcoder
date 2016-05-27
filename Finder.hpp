@@ -13,9 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "FinderPoint.hpp"
+#include "FinderResult.hpp"
 using namespace std;
 using namespace cv;
-class Detetcor {
+class Finder {
 private:
     Mat& image;
     vector<FinderPoint> finderCenters;
@@ -27,10 +28,12 @@ private:
                                        originalStateCountTotal);
     bool haveMultiplyConfirmedCenters();
     int getRowSkip();
+    float distance(FinderPoint& p1, FinderPoint& p2);
+    vector<FinderPoint> orderBestPatterns();
 public:
-    vector<Point> pts;
-    Detetcor(Mat& img);
+    vector<Point2f> pts;
+    Finder(Mat& img);
     vector<FinderPoint>& get_points();
-    bool find();
+    FinderResult find();
 };
 #endif /* Finder_hpp */

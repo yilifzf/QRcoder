@@ -11,7 +11,7 @@ Finder::Finder(Mat& img) : image(img), hasSkipped(false){
 }
 
 vector<FinderPoint>& Finder::get_points() {
-    return finderCenters;
+    return possibleFinderCenters;
 }
 
 FinderResult Finder::find() {
@@ -126,8 +126,9 @@ FinderResult Finder::find() {
             }
         }
     }
-    vector<FinderPoint> ordered = orderBestPatterns();
-    FinderResult result = FinderResult(ordered);
+//    vector<FinderPoint> best = selectBestPattern();
+    vector<FinderPoint> best = orderBestPatterns();
+    FinderResult result = FinderResult(best);
     return result;
 }
 bool Finder::checkRatio(int* stateCount) {
@@ -160,22 +161,25 @@ bool Finder::handlePossibleCenter(int* stateCount, int row, int col) {
     float centerJ = (float)(col - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f;
     float centerI = crossCheckVertical(row, (int)centerJ, stateCount[2], stateCountTotal);
     if (!isnan(centerI)) {
-        float estimatedModuleSize = (float)stateCountTotal / 7.0f;
-        bool found = false;
-        for (auto it = finderCenters.begin(); it != finderCenters.end(); it++) {
-            FinderPoint& center = *it;
-            if (center.aboutEquals(estimatedModuleSize, centerI, centerJ)) {
-                found = true;
-                break;
+        centerJ = crossCheckHorizontal((int)centerJ, (int)centerI, stateCount[2], stateCountTotal);
+        if(!isnan(centerJ)) {
+            float estimatedModuleSize = (float)stateCountTotal / 7.0f;
+            bool found = false;
+            for (auto it = possibleFinderCenters.begin(); it != possibleFinderCenters.end(); it++) {
+                FinderPoint& center = *it;
+                if (center.aboutEquals(estimatedModuleSize, centerI, centerJ)) {
+                    found = true;
+                    break;
+                }
             }
+            if (!found) {
+                FinderPoint newCenter = FinderPoint(centerJ, centerI, estimatedModuleSize);
+                pts.push_back(Point2f(centerJ, centerI));
+                printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
+                possibleFinderCenters.push_back(newCenter);
+            }
+            return true;
         }
-        if (!found) {
-            FinderPoint newCenter = FinderPoint(centerJ, centerI);
-            pts.push_back(Point2f(centerJ, centerI));
-            printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
-            finderCenters.push_back(newCenter);
-        }
-        return true;
     }
     return false;
 }
@@ -227,26 +231,87 @@ float Finder::crossCheckVertical(int startI, int centerJ, int maxCount, int
     return checkRatio(stateCount) ? (float)(i - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f : 0.0/0.0;
 }
 
+float Finder::crossCheckHorizontal(int startJ, int centerI, int maxCount, int originalStateCountTotal) {
+    int maxJ = image.cols;
+    int stateCount[5];
+    for (int i = 0; i < 5; i++) {
+        stateCount[i] = 0;
+    }
+    int j = startJ;
+    while (j >= 0 && image.at<uchar>(Point(j, centerI)) < 128) {
+        stateCount[2]++;
+        j--;
+    }
+    if (j < 0) {
+        return 0.0/0.0;
+    }
+    while (j >= 0 && image.at<uchar>(Point(j, centerI)) > 128 && stateCount[1] <= maxCount) {
+        stateCount[1]++;
+        j--;
+    }
+    if (j < 0 || stateCount[1] > maxCount) {
+        return 0.0/0.0;
+    }
+    while (j >= 0 && image.at<uchar>(Point(j, centerI)) < 128 && stateCount[0] <= maxCount) {
+        stateCount[0]++;
+        j--;
+    }
+    if (stateCount[0] > maxCount) {
+        return 0.0/0.0;
+    }
+
+    j = startJ + 1;
+    while (j < maxJ && image.at<uchar>(Point(j, centerI)) < 128) {
+        stateCount[2]++;
+        j++;
+    }
+    if (j == maxJ) {
+        return 0.0/0.0;
+    }
+    while (j < maxJ && image.at<uchar>(Point(j, centerI)) > 128 && stateCount[3] < maxCount) {
+        stateCount[3]++;
+        j++;
+    }
+    if (j == maxJ || stateCount[3] >= maxCount) {
+        return 0.0/0.0;
+    }
+    while (j < maxJ && image.at<uchar>(Point(j, centerI)) < 128 && stateCount[4] < maxCount) {
+        stateCount[4]++;
+        j++;
+    }
+    if (stateCount[4] >= maxCount) {
+        return 0.0/0.0;
+    }
+
+    // If we found a finder-pattern-like section, but its size is significantly different than
+    // the original, assume it's a false positive
+    int stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2] + stateCount[3] + stateCount[4];
+    if (5 * abs(stateCountTotal - originalStateCountTotal) >= originalStateCountTotal) {
+        return 0.0/0.0;
+    }
+
+    return checkRatio(stateCount) ? (float)(j - stateCount[4] - stateCount[3]) - stateCount[2] / 2.0f : 0.0/0.0;
+}
 bool Finder::haveMultiplyConfirmedCenters() {
     return false;
 }
 
 int Finder::getRowSkip() {
-    int max = finderCenters.size();
+    int max = possibleFinderCenters.size();
     if (max <= 1) {
         return 0;
     }
-    FinderPoint& firstCenter = finderCenters[0];
-    FinderPoint& secondCenter = finderCenters[1];
+    FinderPoint& firstCenter = possibleFinderCenters[0];
+    FinderPoint& secondCenter = possibleFinderCenters[1];
     hasSkipped = true;
     return (int)(abs(firstCenter.getX() - secondCenter.getX()) - abs(firstCenter.getY()
                                                                      - secondCenter.getY())) / 2;
 }
 
 vector<FinderPoint> Finder::orderBestPatterns() {
-    float abDistance = distance(finderCenters[0], finderCenters[1]);
-    float bcDistance = distance(finderCenters[1], finderCenters[2]);
-    float acDistance = distance(finderCenters[0], finderCenters[2]);
+    float abDistance = distance(possibleFinderCenters[0], possibleFinderCenters[1]);
+    float bcDistance = distance(possibleFinderCenters[1], possibleFinderCenters[2]);
+    float acDistance = distance(possibleFinderCenters[0], possibleFinderCenters[2]);
 
     FinderPoint topLeft;
     FinderPoint topRight;
@@ -254,17 +319,17 @@ vector<FinderPoint> Finder::orderBestPatterns() {
     // Assume one closest to other two is top left;
     // topRight and bottomLeft will just be guesses below at first
     if (bcDistance >= abDistance && bcDistance >= acDistance) {
-        topLeft = finderCenters[0];
-        topRight = finderCenters[1];
-        bottomLeft = finderCenters[2];
+        topLeft = possibleFinderCenters[0];
+        topRight = possibleFinderCenters[1];
+        bottomLeft = possibleFinderCenters[2];
     } else if (acDistance >= bcDistance && acDistance >= abDistance) {
-        topLeft = finderCenters[1];
-        topRight = finderCenters[0];
-        bottomLeft = finderCenters[2];
+        topLeft = possibleFinderCenters[1];
+        topRight = possibleFinderCenters[0];
+        bottomLeft = possibleFinderCenters[2];
     } else {
-        topLeft = finderCenters[2];
-        topRight = finderCenters[0];
-        bottomLeft = finderCenters[1];
+        topLeft = possibleFinderCenters[2];
+        topRight = possibleFinderCenters[0];
+        bottomLeft = possibleFinderCenters[1];
     }
 
     // Use cross product to figure out which of other1/2 is the bottom left
@@ -289,3 +354,61 @@ float Finder::distance(FinderPoint& p1, FinderPoint& p2) {
     float dy = p1.getY() - p2.getY();
     return sqrt(dx * dx + dy * dy);
 }
+
+//vector<FinderPoint> Finder::selectBestPattern() {
+//    int startSize = possibleFinderCenters.size();
+//
+//    if (startSize < 3) {
+//        // Couldn't find enough finder patterns
+//        printf("bad centers\n");
+//        exit(1);
+//    }
+//
+//    // Filter outlier possibilities whose module size is too different
+//    if (startSize > 3) {
+//        // But we can only afford to do so if we have at least 4 possibilities to choose from
+//        float totalModuleSize = 0.0f;
+//        float square = 0.0f;
+//        for (int i = 0; i < startSize; i++) {
+//            float size = possibleFinderCenters[i].getEstimatedModuleSize();
+//            totalModuleSize += size;
+//            square += size * size;
+//        }
+//        float average = totalModuleSize / (float) startSize;
+//        float stdDev = sqrt(square / startSize - average * average);
+//
+//        sort(possibleFinderCenters.begin(), possibleFinderCenters.end(), FurthestFromAverageComparator(average));
+//
+//        float limit = max(0.2f * average, stdDev);
+//
+//        for (size_t i = 0; i < possibleFinderCenters.size() && possibleFinderCenters.size() > 3; i++) {
+//            if (abs(possibleFinderCenters[i].getEstimatedModuleSize() - average) > limit) {
+//                possibleFinderCenters.erase(possibleFinderCenters.begin()+i);
+//                i--;
+//            }
+//        }
+//    }
+//
+//    if (possibleFinderCenters.size() > 3) {
+//        // Throw away all but those first size candidate points we found.
+//        float totalModuleSize = 0.0f;
+//        for (size_t i = 0; i < possibleFinderCenters.size(); i++) {
+//            float size = possibleFinderCenters[i].getEstimatedModuleSize();
+//            totalModuleSize += size;
+//        }
+//        float average = totalModuleSize / (float) possibleFinderCenters.size();
+//        sort(possibleFinderCenters.begin(), possibleFinderCenters.end(), CenterComparator(average));
+//    }
+//
+//    if (possibleFinderCenters.size() > 3) {
+//        possibleFinderCenters.erase(possibleFinderCenters.begin()+3,possibleFinderCenters.end());
+//    }
+//
+//    vector<Ref<FinderPattern> > result(3);
+//    result[0] = possibleFinderCenters[0];
+//    result[1] = possibleFinderCenters[1];
+//    result[2] = possibleFinderCenters[2];
+//    return result;
+//}
+
+

@@ -32,8 +32,9 @@ int main(int argc, char** argv) {
         Point2f p2 = *it;
         circle(img, p2, 3, Scalar(255,0,0));
     }
-    Point pTest = Point(160,155);
-    circle(img, pTest, 2, Scalar(0,255,0));
+    Point pTest = Point(41,52);
+//    if (imgBW.at<uchar>(pTest) > 128) printf("ha\n");
+//    circle(img, pTest, 2, Scalar(0,255,0));
     imshow("code.png", img);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findHorizonPattern.png", img);
     imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findPattern.png", img);

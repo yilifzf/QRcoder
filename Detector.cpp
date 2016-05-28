@@ -43,6 +43,7 @@ void Detector::processFinderPatternInfo(FinderResult fr) {
             }
         }
     }
+
     RawSampleGrid(topLeft, topRight, bottomLeft, bitMatrix);
 //    if (bitMatrix[0]) {
 //                printf("X\n");
@@ -74,7 +75,9 @@ float Detector::calculateModuleSizeOneWay(FinderPoint &pattern, FinderPoint &oth
     //For simplification, just compute the size in pattern, omitting the otherPattern
     float moduleSizeEst1 = sizeOf11311Pattern((int)pattern.getX(), (int)pattern.getY(),
                                                             (int)otherPattern.getX(), (int)otherPattern.getY());
-    return moduleSizeEst1/7.0;
+    float moduleSizeEst2 = sizeOf11311Pattern((int)otherPattern.getX(), (int)otherPattern.getY(),
+                                              (int)pattern.getX(), (int)pattern.getY());
+    return (moduleSizeEst1 + moduleSizeEst2)/14.0;
 }
 
 float Detector::sizeOf11311Pattern(int fromX, int fromY, int toX, int toY) {
@@ -104,14 +107,18 @@ float Detector::sizeOf11311Pattern(int fromX, int fromY, int toX, int toY) {
     for (int x = fromX, y = fromY; x != xLimit; x += xstep) {
         int realX = steep ? y : x;
         int realY = steep ? x : y;
-        viewer.push_back(Point(x, y));
+//        if (!steep) {
+//            viewer.push_back(Point(x, y));
+//        } else {
+//            viewer.push_back(Point(y, x));
+//        }
 
         // Does current pixel mean we have moved white to black or vice versa?
         if (!((state == 1) ^ (image.at<uchar>(Point(realX, realY)) < 128))) {
             if (state == 2) {
                 float xDiff = abs(x - fromX);
                 float yDiff = abs(y - fromY);
-                result = sqrt(xDiff * xDiff - yDiff * yDiff);
+                result = sqrt(xDiff * xDiff + yDiff * yDiff);
                 break;
             }
             state++;
@@ -131,16 +138,21 @@ float Detector::sizeOf11311Pattern(int fromX, int fromY, int toX, int toY) {
     //turn around to count the other half part.
     state = 0;
     xstep = - xstep;
+    ystep = -ystep;
     for (int x = fromX + xstep, y = fromY; x != 0 && x != image.cols; x += xstep) {
         int realX = steep ? y : x;
         int realY = steep ? x : y;
-        viewer.push_back(Point(x, y));
+//        if (!steep) {
+//            viewer.push_back(Point(x, y));
+//        } else {
+//            viewer.push_back(Point(y, x));
+//        }
         // Does current pixel mean we have moved white to black or vice versa?
         if (!((state == 1) ^ (image.at<uchar>(Point(realX, realY)) < 128))) {
             if (state == 2) {
                 float xDiff = abs(x - fromX);
                 float yDiff = abs(y - fromY);
-                result += sqrt(xDiff * xDiff - yDiff * yDiff);
+                result += sqrt(xDiff * xDiff + yDiff * yDiff);
                 return result - 1.0;
             }
             state++;

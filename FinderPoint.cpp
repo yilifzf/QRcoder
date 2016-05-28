@@ -14,6 +14,9 @@ FinderPoint::FinderPoint():_x(0), _y(0) {
 FinderPoint::FinderPoint(float x, float y) : _x(x), _y(y) {
 }
 
+FinderPoint::FinderPoint(float x, float y, float estimatedModuleSize) : _x(x), _y(y), _estimatedModuleSize(estimatedModuleSize) {
+}
+
 float FinderPoint::getX() {
     return _x;
 }
@@ -28,4 +31,8 @@ float FinderPoint::distance(FinderPoint p) {
     float xDiff = abs(this->_x - p.getX());
     float yDiff = abs(this->_y - p.getY());
     return sqrt(xDiff*xDiff + yDiff*yDiff);
+}
+
+float FinderPoint::getEstimatedModuleSize() {
+    return _estimatedModuleSize;
 }

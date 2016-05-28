@@ -19,17 +19,19 @@ using namespace cv;
 class Finder {
 private:
     Mat& image;
-    vector<FinderPoint> finderCenters;
+    vector<FinderPoint> possibleFinderCenters;
     
     bool hasSkipped;
     bool checkRatio(int* stateCount);
     bool handlePossibleCenter(int* stateCount, int row, int col);
     float crossCheckVertical(int startI, int centerJ, int maxCount, int
                                        originalStateCountTotal);
+    float crossCheckHorizontal(int startJ, int centerI, int maxCount, int originalStateCountTotal);
     bool haveMultiplyConfirmedCenters();
     int getRowSkip();
     float distance(FinderPoint& p1, FinderPoint& p2);
     vector<FinderPoint> orderBestPatterns();
+    vector<FinderPoint> selectBestPattern();
 public:
     vector<Point2f> pts;
     Finder(Mat& img);

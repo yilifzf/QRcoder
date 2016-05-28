@@ -14,11 +14,17 @@ class FinderPoint {
 private:
     float _x;
     float _y;
+    float _estimatedModuleSize;
 public:
     FinderPoint();
     FinderPoint(float x, float y);
+    FinderPoint(float x, float y, float estimatedModuleSize);
+
     float getX();
     float getY();
+
+    float getEstimatedModuleSize();
+
     bool aboutEquals(float moduleSize, float i, float j);
     float distance(FinderPoint p);
 };

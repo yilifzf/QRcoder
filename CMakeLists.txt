@@ -12,7 +12,7 @@ set(SOURCE_FILES
     FinderPoint.hpp
     FinderResult.cpp
     FinderResult.hpp
-    main.cpp Detector.cpp Detector.h Version.cpp Version.h)
+    main.cpp Detector.cpp Detector.h Version.cpp Version.h DetectorResult.cpp DetectorResult.h FormatInfo.cpp FormatInfo.h BitMatrix.cpp BitMatrix.h DataBlock.cpp DataBlock.h)
 
 add_executable(QRcodeCPP ${SOURCE_FILES})
 

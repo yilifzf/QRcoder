@@ -15,7 +15,7 @@ Version::Version(Mat& img, int dimension) : image(img){
         else {
             ptsNum = (versionNumber/7 + 2) * (versionNumber/7 + 2) -3;
         }
-        AlignmentPoints = vector<FinderPoint>(ptsNum);
+        AlignmentPoints = vector<FinderPoint>();
     }
 }
 
@@ -133,6 +133,7 @@ bool Version::handlePossibleCenter(vector<int> stateCount, int i, int j, float m
 //        }
         FinderPoint newCenter = FinderPoint(centerJ, centerI);
         AlignmentPoints.push_back(FinderPoint(centerJ, centerI));
+//        printf("%d\n",AlignmentPoints.size());
         printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
         return true;
     }

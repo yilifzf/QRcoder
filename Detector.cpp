@@ -7,7 +7,7 @@
 Detector::Detector(Mat& img) : image(img){
 }
 
-void Detector::processFinderPatternInfo(FinderResult fr) {
+DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
     FinderPoint topLeft = fr.getTopLeft();
     FinderPoint topRight = fr.getTopRight();
     FinderPoint bottomLeft = fr.getBottomLeft();
@@ -43,28 +43,25 @@ void Detector::processFinderPatternInfo(FinderResult fr) {
             }
         }
     }
-
+//    printf("align: %d\n", alignmentPattern.size());
     RawSampleGrid(topLeft, topRight, bottomLeft, bitMatrix);
 //    if (bitMatrix[0]) {
 //                printf("X\n");
 //    }
 
     //show for debug
-    for (int iy = 0; iy < dimension; ++iy) {
-        int jx = 0;
-        for (; jx < dimension; ++jx) {
-            if (bitMatrix[iy*dimension + jx]) {
-                printf("X");
-            }
-            else {
-                printf(" ");
-            }
-            if (jx == dimension - 1) {
-                printf("\n");
-            }
-        }
-    }
     ///////
+    BitMatrix bits = BitMatrix(bitMatrix, dimension);
+    bits.display();
+    vector<FinderPoint> resultPoints;
+    resultPoints.push_back(bottomLeft);
+    resultPoints.push_back(topLeft);
+    resultPoints.push_back(topRight);
+    for (auto it = alignmentPattern.begin(); it != alignmentPattern.end(); ++it) {
+        resultPoints.push_back(*it);
+    }
+    DetectorResult result = DetectorResult(resultPoints, bits);
+    return result;
 }
 
 float Detector::calculateModuleSize(FinderPoint& topLeft, FinderPoint& topRight, FinderPoint& bottomLeft) {

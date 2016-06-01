@@ -8,6 +8,7 @@
 #include <cv.h>
 #include "FinderResult.hpp"
 #include "Version.h"
+#include "DetectorResult.h"
 
 using namespace cv;
 class Detector {
@@ -26,7 +27,7 @@ private:
                     int modulesBetweenFinderCenter);
 public:
     vector<Point> viewer;
-    void processFinderPatternInfo(FinderResult fr);
+    DetectorResult processFinderPatternInfo(FinderResult fr);
 };
 
 

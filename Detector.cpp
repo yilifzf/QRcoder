@@ -8,6 +8,8 @@ Detector::Detector(Mat& img) : image(img){
 }
 
 DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
+//    This function calculate the module size and find the alignment center,
+// finally it transform the black and white modules to a binary matrix.
     FinderPoint topLeft = fr.getTopLeft();
     FinderPoint topRight = fr.getTopRight();
     FinderPoint bottomLeft = fr.getBottomLeft();
@@ -19,7 +21,7 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
     printf("ModuleSize : %f\n", moduleSize);
     int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize);
     printf("dimension : %d\n", dimension);
-    Version version = Version(image, dimension);
+    Version version = Version(dimension);
     int modulesBetweenFPCenters = version.getDimensionForVersion() - 7;
 
     vector<FinderPoint> alignmentPattern;
@@ -29,22 +31,27 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
         float transform = topRight.getX() - topLeft.getX() + bottomLeft.getX();
         float bits = topRight.getY() - topLeft.getY() + bottomLeft.getY();
         float points = 1.0F - 3.0F / (float)modulesBetweenFPCenters;
+
+        // We can calculate where the alignment center should be.
         int estAlignmentX = (int)(topLeft.getX() + points * (transform - topLeft.getX()));
         int estAlignmentY = (int)(topLeft.getY() + points * (bits - topLeft.getY()));
         int i = 4;
 
         while(i <= 16) {
-            if (version.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY, (float)i)) {
+            if (version.findAlignmentInRegion(image, moduleSize, estAlignmentX, estAlignmentY, (float)i)) {
                 alignmentPattern = version.getAlignmentPatternCenters();
                 break;
             }
             else {
+                // try to search in a wider range.
                 i <<= 1;
             }
         }
     }
-//    printf("align: %d\n", alignmentPattern.size());
-    RawSampleGrid(topLeft, topRight, bottomLeft, bitMatrix);
+
+    // Now we sample the image to a matrix.
+    RawSampleGrid(topLeft, topRight, bottomLeft, alignmentPattern[0], bitMatrix);
+
 //    if (bitMatrix[0]) {
 //                printf("X\n");
 //    }
@@ -190,12 +197,13 @@ int Detector::computeDimension(FinderPoint& topLeft, FinderPoint& topRight, Find
     return dimension;
 }
 
-void Detector::RawSampleGrid(FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft, vector<bool> &result) {
+void Detector::RawSampleGrid(FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft,
+                             FinderPoint alignment, vector<bool> &result) {
     int dimension = sqrt(result.size());
     int modulesBetweenFinderCenter = dimension - 7;
     for (int i = 0; i < dimension; ++i) {
         for (int j = 0; j < dimension; ++j) {
-            Point2f tmp = transform(j + 0.5f, i + 0.5f, topLeft, topRight, bottomLeft, modulesBetweenFinderCenter);
+            Point2f tmp = transform(j + 0.5f, i + 0.5f, topLeft, topRight, bottomLeft, alignment, modulesBetweenFinderCenter);
             if (image.at<uchar>(tmp) < 128) {
                 result[i*dimension + j] = true;
             } else {
@@ -207,13 +215,31 @@ void Detector::RawSampleGrid(FinderPoint topLeft, FinderPoint topRight, FinderPo
 
 
 Point2f Detector::transform(float x, float y, FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft,
-                          int modulesBetweenFinderCenter) {
-    Point2f zero = Point2f(topLeft.getX(),topLeft.getY());
-    Point2f tR = Point2f(topRight.getX(),topRight.getY());
-    Point2f bL = Point2f(bottomLeft.getX(),bottomLeft.getY());
-    Point2f xBase = Point2f((tR - zero).x/modulesBetweenFinderCenter, (tR - zero).y/modulesBetweenFinderCenter);
-    Point2f yBase = Point2f((bL - zero).x/(float)modulesBetweenFinderCenter, (bL - zero).y/(float)modulesBetweenFinderCenter);
-    Point2f newX = xBase * (x - 3.5);
-    Point2f newY = yBase * (y - 3.5);
-    return  newX + newY + zero;
+                            FinderPoint alignment, int modulesBetweenFinderCenter) {
+    if (x < modulesBetweenFinderCenter && y < modulesBetweenFinderCenter) {
+        Point2f zero = Point2f(topLeft.getX(),topLeft.getY());
+        Point2f tR = Point2f(topRight.getX(),topRight.getY());
+        Point2f bL = Point2f(bottomLeft.getX(),bottomLeft.getY());
+        Point2f xBase = Point2f((tR - zero).x/(float)modulesBetweenFinderCenter, (tR - zero).y/(float)modulesBetweenFinderCenter);
+        Point2f yBase = Point2f((bL - zero).x/(float)modulesBetweenFinderCenter, (bL - zero).y/(float)modulesBetweenFinderCenter);
+        Point2f newX = xBase * (x - 3.5);
+        Point2f newY = yBase * (y - 3.5);
+        return  newX + newY + zero;
+    }
+    else {
+        Point2f Tl = Point2f(topLeft.getX(),topLeft.getY());
+        Point2f Tr = Point2f(topRight.getX(),topRight.getY());
+        Point2f Bl = Point2f(bottomLeft.getX(),bottomLeft.getY());
+        Point2f Xbase = Point2f((Tr - Tl).x/(float)modulesBetweenFinderCenter, (Tr - Tl).y/(float)modulesBetweenFinderCenter);
+        Point2f Ybase = Point2f((Bl - Tl).x/(float)modulesBetweenFinderCenter, (Bl - Tl).y/(float)modulesBetweenFinderCenter);
+
+        Point2f zero = Point2f(alignment.getX(),alignment.getY());
+        Point2f TrNear = Tr - 3*Xbase;
+        Point2f BlNear = Bl - 3*Ybase;
+        Point2f yBase = Point2f((zero - TrNear).x/(float)(modulesBetweenFinderCenter - 3), -(TrNear - zero).y/(float)(modulesBetweenFinderCenter - 3));
+        Point2f xBase = Point2f(-(BlNear - zero).x/(float)(modulesBetweenFinderCenter - 3), -(BlNear - zero).y/(float)(modulesBetweenFinderCenter - 3));
+        Point2f newX = xBase * (x - modulesBetweenFinderCenter - 0.5);
+        Point2f newY = yBase * (y - modulesBetweenFinderCenter - 0.5);
+        return  newX + newY + zero;
+    }
 }

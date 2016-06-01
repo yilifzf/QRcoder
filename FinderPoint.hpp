@@ -10,6 +10,7 @@
 #define FinderPoint_hpp
 #include <stdlib.h>
 #include <stdio.h>
+
 class FinderPoint {
 private:
     float _x;

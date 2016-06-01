@@ -22,9 +22,10 @@ private:
     int computeDimension(FinderPoint& topLeft, FinderPoint& topRight, FinderPoint& bottomLeft, float moduleSize);
     float calculateModuleSizeOneWay(FinderPoint& pattern, FinderPoint& otherPattern);
     float sizeOf11311Pattern(int fromX, int fromY, int toX, int toY);
-    void RawSampleGrid(FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft, vector<bool> &result);
+    void RawSampleGrid(FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft,
+                       FinderPoint alignment, vector<bool> &result);
     Point2f transform(float x, float y, FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft,
-                    int modulesBetweenFinderCenter);
+                      FinderPoint alignment, int modulesBetweenFinderCenter);
 public:
     vector<Point> viewer;
     DetectorResult processFinderPatternInfo(FinderResult fr);

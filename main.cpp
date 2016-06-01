@@ -26,16 +26,16 @@ int main(int argc, char** argv) {
     Detector detector = Detector(imgBW);
     DetectorResult detectorResult = detector.processFinderPatternInfo(fr);
 //    test bits:
-    BitMatrix bits = detectorResult.getBits();
-    int dim = bits.getDimension();
-    for (int y = 0; y < dim; ++y) {
-        for (int x = 0; x < dim; ++x) {
-            if (bits.get(x,y)) {
-                rectangle(testForDecode,Point(5*x+15,5*y+15),Point(5*x+20,5*y+20),Scalar(0,0,0),-1);
-            }
-        }
-
-    }
+//    BitMatrix bits = detectorResult.getBits();
+//    int dim = bits.getDimension();
+//    for (int y = 0; y < dim; ++y) {
+//        for (int x = 0; x < dim; ++x) {
+//            if (bits.get(x,y)) {
+//                rectangle(testForDecode,Point(5*x+15,5*y+15),Point(5*x+20,5*y+20),Scalar(0,0,0),-1);
+//            }
+//        }
+//
+//    }
 
 //
     Decoder decoder = Decoder(detectorResult);
@@ -52,15 +52,15 @@ int main(int argc, char** argv) {
 //    if (imgBW.at<uchar>(pTest) > 128) printf("ha\n");
 //    circle(img, pTest, 2, Scalar(0,255,0));
 
-//    namedWindow("code", 1);
+    namedWindow("code", 1);
 //    imshow("test.png",testForDecode);
-//    imshow("code.png", img);
+    imshow("code.png", img);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findHorizonPattern.png", img);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findPattern.png", img);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/BW.png", imgBW);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/test.png", testForDecode);
     
 //    imshow("imgBW.png", imgBW);
-//    waitKey(0);
+    waitKey(0);
     return 0;
 }

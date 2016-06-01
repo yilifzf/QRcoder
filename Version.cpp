@@ -4,7 +4,8 @@
 
 #include "Version.h"
 using namespace std;
-Version::Version(Mat& img, int dimension) : image(img){
+
+Version::Version(int dimension) {
     if(dimension % 4 != 1) {
         printf("Bad version\n");
         exit(1);
@@ -31,7 +32,7 @@ int Version::getVersionNumber() {
     return versionNumber;
 }
 
-bool Version::findAlignmentInRegion(float moduleSize, int estAlignmentX, int estAlignmentY,
+bool Version::findAlignmentInRegion(Mat &image, float moduleSize, int estAlignmentX, int estAlignmentY,
                                     float allowanceFactor) {
     int allowance = (int)(allowanceFactor * moduleSize);
     int startX = max(0, estAlignmentX - allowance);
@@ -66,7 +67,7 @@ bool Version::findAlignmentInRegion(float moduleSize, int estAlignmentX, int est
                 } else { // Counting white pixels
                     if (currentState == 2) { // A winner?
                         if (checkRatio(stateCount, moduleSize)) { // Yes
-                            bool confirmed = handlePossibleCenter(stateCount, i, j, moduleSize);
+                            bool confirmed = handlePossibleCenter(image, stateCount, i, j, moduleSize);
                             if (confirmed) {
                                 return true;
                             }
@@ -88,7 +89,7 @@ bool Version::findAlignmentInRegion(float moduleSize, int estAlignmentX, int est
             j++;
         }
         if (checkRatio(stateCount, moduleSize)) {
-            bool confirmed = handlePossibleCenter(stateCount, i, maxJ, moduleSize);
+            bool confirmed = handlePossibleCenter(image, stateCount, i, maxJ, moduleSize);
             if (confirmed) {
                 return true;
             }
@@ -108,10 +109,10 @@ bool Version::checkRatio(vector<int> stateCount, float moduleSize) {
     return true;
 }
 
-bool Version::handlePossibleCenter(vector<int> stateCount, int i, int j, float moduleSize) {
+bool Version::handlePossibleCenter(Mat &image, vector<int> stateCount, int i, int j, float moduleSize) {
     int stateCountTotal = stateCount[0] + stateCount[1] + stateCount[2];
     float centerJ = (float)(j - stateCount[2]) - stateCount[1] / 2.0f;
-    float centerI = crossCheckVertical(i, (int) centerJ, 2 * stateCount[1], stateCountTotal, moduleSize);
+    float centerI = crossCheckVertical(image, i, (int) centerJ, 2 * stateCount[1], stateCountTotal, moduleSize);
     if (!isnan(centerI)) {
 //        leave for later extend
 
@@ -134,13 +135,13 @@ bool Version::handlePossibleCenter(vector<int> stateCount, int i, int j, float m
         FinderPoint newCenter = FinderPoint(centerJ, centerI);
         AlignmentPoints.push_back(FinderPoint(centerJ, centerI));
 //        printf("%d\n",AlignmentPoints.size());
-        printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
+        printf("Created alignment center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
         return true;
     }
     return false;
 }
 
-float Version::crossCheckVertical(int startI, int centerJ, int maxCount, int originalStateCountTotal, float moduleSize) {
+float Version::crossCheckVertical(Mat &image, int startI, int centerJ, int maxCount, int originalStateCountTotal, float moduleSize) {
     int maxI = image.rows;
     vector<int> stateCount(3,0);
 //    for (int i = 0; i < 3; i++) {

@@ -30,10 +30,10 @@ void BitMatrix::display() {
         int jx = 0;
         for (; jx < dimension; ++jx) {
             if (bits[iy*dimension + jx]) {
-                printf("X");
+                printf("X ");
             }
             else {
-                printf(" ");
+                printf("  ");
             }
             if (jx == dimension - 1) {
                 printf("\n");

@@ -10,7 +10,7 @@
 #include "Decoder.hpp"
 #include "FormatInfo.h"
 #include "DataBlock.h"
-#include "rs.hpp"
+#include "lib/rs.hpp"
 
 Decoder::Decoder(DetectorResult &detectorResult) {
     resultPoints = detectorResult.getResultPoints();

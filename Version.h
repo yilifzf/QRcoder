@@ -11,18 +11,17 @@
 using namespace cv;
 class Version {
 private:
-    Mat& image;
     vector<FinderPoint> AlignmentPoints;
     int versionNumber;
     bool checkRatio(vector<int> stateCount, float moduleSize);
-    bool handlePossibleCenter(vector<int> stateCount, int i, int j, float moduleSize);
-    float crossCheckVertical(int startI, int centerJ, int maxCount, int originalStateCountTotal, float moduleSize);
+    bool handlePossibleCenter(Mat& image, vector<int> stateCount, int i, int j, float moduleSize);
+    float crossCheckVertical(Mat& image, int startI, int centerJ, int maxCount, int originalStateCountTotal, float moduleSize);
 public:
-    Version(Mat& img, int dimension);
+    Version(int dimension);
     int getDimensionForVersion();
     vector<FinderPoint> getAlignmentPatternCenters();
     int getVersionNumber();
-    bool findAlignmentInRegion(float overallEstModuleSize, int estAlignmentX, int estAlignmentY,
+    bool findAlignmentInRegion(Mat& image, float overallEstModuleSize, int estAlignmentX, int estAlignmentY,
                                     float allowanceFactor);
 };
 

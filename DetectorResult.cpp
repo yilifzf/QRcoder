@@ -4,6 +4,6 @@
 
 #include "DetectorResult.h"
 
-DetectorResult::DetectorResult(const vector<FinderPoint> &resultPoints, const BitMatrix& bits)  : resultPoints(
+DetectorResult::DetectorResult(const vector<FinderPoint> resultPoints, const BitMatrix& bits)  : resultPoints(
         resultPoints), bits(bits) {}
 

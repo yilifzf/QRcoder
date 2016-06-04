@@ -11,6 +11,7 @@
 #include "FormatInfo.h"
 #include "DataBlock.h"
 #include "lib/rs.hpp"
+#include "Version.h"
 
 Decoder::Decoder(DetectorResult &detectorResult) {
     resultPoints = detectorResult.getResultPoints();
@@ -18,7 +19,7 @@ Decoder::Decoder(DetectorResult &detectorResult) {
 }
 
 void Decoder::decode() {
-    int version = (bits.getDimension() - 17) / 4;
+    Version  version(bits.getDimension());
     FormatInfo formatInfo = FormatInfo(bits);
     releaseMask(formatInfo.getMaskPattern());
     vector<char> codewords = readCodeWords();
@@ -31,14 +32,13 @@ void Decoder::decode() {
     for (int i = 0; i < dataBlocks.size(); i++) {
         totalBytes += dataBlocks[i].getNumDataCodewords();
         vector<char> codewordInBlock = dataBlocks[i].getCodewords();
-        printf("Block %d:",i);
+        printf("Block %d:(size: %d)",i, codewordInBlock.size());
         for (int i = 0; i < codewordInBlock.size(); ++i) {
             printf("%d ", codewordInBlock[i]);
         }
         printf("\n");
     }
     int resultOffset = 0;
-
     vector<char> resultBytes(totalBytes);
     vector<char> correctedData;
     for (int j = 0; j < dataBlocks.size(); j++) {
@@ -61,6 +61,7 @@ void Decoder::releaseMask(int maskPattern) {
     printf("MaskPattern: %d\n",maskPattern);
     int dimension = bits.getDimension();
     vector<bool> mask(dimension * dimension);
+
     if (maskPattern == 1) {
         for (int i = 0; i < dimension; ++i) {
             for (int j = 0; j < dimension; ++j) {
@@ -68,11 +69,33 @@ void Decoder::releaseMask(int maskPattern) {
             }
         }
     }
+    if (maskPattern == 3) {
+        for (int i = 0; i < dimension; ++i) {
+            for (int j = 0; j < dimension; ++j) {
+                mask[i * dimension + j] = ((i + j) % 3 == 0);
+            }
+        }
+    }
+    if (maskPattern == 6) {
+        for (int i = 0; i < dimension; ++i) {
+            for (int j = 0; j < dimension; ++j) {
+                mask[i * dimension + j] = ((i*j) % 2 +(i*j) % 3)%2 == 0;
+            }
+        }
+    }
+
+    if (maskPattern == 7) {
+        for (int i = 0; i < dimension; ++i) {
+            for (int j = 0; j < dimension; ++j) {
+                mask[i * dimension + j] = ((i*j) % 3 + (i+j) % 2) % 2 == 0;
+            }
+        }
+    }
     bits.XOR(mask);
     BitMatrix test = BitMatrix(mask, dimension);
 
 //    printf("\n");
-//    test.display();
+    test.display();
     bits.display();
 
 }
@@ -148,7 +171,8 @@ vector<char> Decoder::correctErrors(vector<char> codewordBytes, int numDataCodew
         encoded[i] = codewordBytes[i];
     }
     char repaired[numDataCodewords];
-    RS::ReedSolomon<9, 16> rs;
+    printf("rs: %d %d\n",numDataCodewords, numECCodewords);
+    RS::ReedSolomon rs(numDataCodewords, numECCodewords);
     rs.Decode(encoded,repaired);
     vector<char> result;
     printf("total:%d data:%d\n", numCodewords, numDataCodewords);

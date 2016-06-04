@@ -2,6 +2,7 @@
 // Created by 范志方 on 16/5/25.
 //
 
+#include <opencv2/highgui/highgui.hpp>
 #include "Detector.h"
 
 Detector::Detector(Mat& img) : image(img){
@@ -48,9 +49,34 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
             }
         }
     }
+    vector<FinderPoint> resultPoints;
+    resultPoints.push_back(bottomLeft);
+    resultPoints.push_back(topLeft);
+    resultPoints.push_back(topRight);
+    for (auto it = alignmentPattern.begin(); it != alignmentPattern.end(); ++it) {
+        resultPoints.push_back(*it);
+    }
+//    printf("rs:%d\n",resultPoints.size());
+    Mat transform = getTransform(resultPoints, dimension, moduleSize);
+    Mat reverseTransform = getReverseTransform(resultPoints, dimension, moduleSize);
+    Mat output;
+    warpPerspective(image,output,transform,output.size());
+    cv::imshow("transform", output);
+
+
+    // test:
+//    vector<Point2f> test;
+//    test.push_back(Point2f(alignmentPattern[0].getX(), alignmentPattern[0].getY()));
+//    vector<Point2f> testOut;
+//    perspectiveTransform(test,testOut,reverseTranform);
+//    printf("(%f, %f)\n", testOut[0].x, testOut[0].y);
+//    circle(output, testOut[0], 2, Scalar(255,255,255));
+
+    //
 
     // Now we sample the image to a matrix.
-    RawSampleGrid(topLeft, topRight, bottomLeft, alignmentPattern[0], bitMatrix);
+    sampleGrid(reverseTransform, bitMatrix, moduleSize);
+//    RawSampleGrid(topLeft, topRight, bottomLeft, alignmentPattern[0], bitMatrix);
 
 //    if (bitMatrix[0]) {
 //                printf("X\n");
@@ -60,13 +86,7 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
     ///////
     BitMatrix bits = BitMatrix(bitMatrix, dimension);
     bits.display();
-    vector<FinderPoint> resultPoints;
-    resultPoints.push_back(bottomLeft);
-    resultPoints.push_back(topLeft);
-    resultPoints.push_back(topRight);
-    for (auto it = alignmentPattern.begin(); it != alignmentPattern.end(); ++it) {
-        resultPoints.push_back(*it);
-    }
+
     DetectorResult result = DetectorResult(resultPoints, bits);
     return result;
 }
@@ -242,4 +262,59 @@ Point2f Detector::transform(float x, float y, FinderPoint topLeft, FinderPoint t
         Point2f newY = yBase * (y - modulesBetweenFinderCenter - 0.5);
         return  newX + newY + zero;
     }
+}
+
+Mat Detector::getTransform(vector<FinderPoint> &input, int dimension, int moduleSize) {
+    vector<Point2f> src;
+    for (int i = 0; i < 4; ++i) {
+        Point2f p =  Point2f(input[i].getX(), input[i].getY());
+        src.push_back(p);
+    }
+    vector<Point2f> dst;
+    dst.push_back(Point2f(5 * moduleSize, dimension * moduleSize - 5 * moduleSize));
+    dst.push_back(Point2f(5 * moduleSize, 5 * moduleSize));
+    dst.push_back(Point2f(dimension * moduleSize - 5 * moduleSize, 5 * moduleSize));
+    dst.push_back(Point2f(dimension * moduleSize - 8 * moduleSize, dimension * moduleSize - 8 * moduleSize));
+    Mat result = getPerspectiveTransform(src, dst);
+    return result;
+}
+
+Mat Detector::getReverseTransform(vector<FinderPoint> &input, int dimension, float moduleSize) {
+    vector<Point2f> src;
+    for (int i = 0; i < 4; ++i) {
+        Point2f p =  Point2f(input[i].getX(), input[i].getY());
+        src.push_back(p);
+    }
+    vector<Point2f> dst;
+    dst.push_back(Point2f(3.5 * moduleSize, dimension * moduleSize - 3.5 * moduleSize));
+    dst.push_back(Point2f(3.5 * moduleSize, 3.5 * moduleSize));
+    dst.push_back(Point2f(dimension * moduleSize - 3.5 * moduleSize, 3.5 * moduleSize));
+    dst.push_back(Point2f(dimension * moduleSize - 6.5 * moduleSize, dimension * moduleSize - 6.5 * moduleSize));
+//    printf("(%f, %f)\n", dst[1].x, dst[1].y);
+    Mat result = getPerspectiveTransform(dst, src);
+    return result;
+}
+
+void Detector::sampleGrid(Mat &transform, vector<bool> &result, float moduleSize) {
+    int dimension = sqrt(result.size());
+    int modulesBetweenFinderCenter = dimension - 7;
+    vector<Point2f> pointDst, pointSrc;
+    for (int i = 0; i < dimension; ++i) {
+        for (int j = 0; j < dimension; ++j) {
+            Point2f dst((j+0.5)*moduleSize, (i+0.5)*moduleSize);
+            pointDst.push_back(dst);
+        }
+    }
+    perspectiveTransform(pointDst, pointSrc, transform);
+    for (int i = 0; i < dimension; ++i) {
+        for (int j = 0; j < dimension; ++j) {
+            Point2f src = pointSrc[i * dimension + j];
+            if (image.at<uchar>(src) < 128) {
+                result[i*dimension + j] = true;
+            } else {
+                result[i*dimension + j] = false;
+            }
+        }
+    }
+
 }

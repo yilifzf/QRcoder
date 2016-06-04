@@ -43,10 +43,10 @@ FormatInfo::FormatInfo(BitMatrix &bits) {
     printf("%X\n", formatBits2);
     if (formatBits1 != formatBits2) {
         printf("bad format\n");
-        exit(1);
+
     }
     int data = formatBits1 >> 10;
-    ErrorCorrectionLevel = (data >> 3) ^ 2;
+    ErrorCorrectionLevel = ((data >> 3) ^ 2) ^ 1;
     MaskPattern = (data & 7) ^ 5;
 }
 

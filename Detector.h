@@ -26,6 +26,10 @@ private:
                        FinderPoint alignment, vector<bool> &result);
     Point2f transform(float x, float y, FinderPoint topLeft, FinderPoint topRight, FinderPoint bottomLeft,
                       FinderPoint alignment, int modulesBetweenFinderCenter);
+    Mat getTransform(vector<FinderPoint> &input, int dimension, int moduleSize);
+    Mat getReverseTransform(vector<FinderPoint> &input, int dimension, float moduleSize);
+    void sampleGrid(Mat &transform, vector<bool> &result, float moduleSize);
+
 public:
     vector<Point> viewer;
     DetectorResult processFinderPatternInfo(FinderResult fr);

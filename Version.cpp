@@ -179,3 +179,40 @@ float Version::crossCheckVertical(Mat &image, int startI, int centerJ, int maxCo
 
     return checkRatio(stateCount, moduleSize) ? (float)(i - stateCount[2]) - stateCount[1] / 2.0f : 0.0/0.0;
 }
+
+int Version::getNumBlocks(int ecLevel) {
+    if (versionNumber <= 2) return 1;
+    if (versionNumber == 3) {
+        if (ecLevel == 0 || ecLevel == 1) return 1;
+        if (ecLevel > 1) return 2;
+    }
+    if (versionNumber == 4) {
+        if (ecLevel == 0) return 1;
+        if (ecLevel == 1 || ecLevel == 2) return 2;
+        if (ecLevel == 3) return 4;
+    }
+    printf("This version is not supported\n");
+    exit(1);
+}
+
+int Version::getNumEcCodewords(int ecLevel) {
+    if (versionNumber == 1) {
+        if (ecLevel < 3) return 7 + ecLevel * 3;
+        if (ecLevel == 3) return 17;
+    }
+    if (versionNumber == 2) {
+        return 10 + ecLevel * 6;
+    }
+    if (versionNumber == 3) {
+        if (ecLevel == 0) return 15;
+        if (ecLevel == 1) return 26;
+        if (ecLevel == 2) return 36;
+        if (ecLevel == 3) return 44;
+    }
+    if (versionNumber == 4) {
+        if (ecLevel < 3) return 20 + ecLevel * 16;
+        if (ecLevel == 3) return 64;
+    }
+    printf("This version is not supported\n");
+    exit(1);
+}

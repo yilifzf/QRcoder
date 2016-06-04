@@ -40,14 +40,14 @@ int main(int argc, char** argv) {
 //
     Decoder decoder = Decoder(detectorResult);
     decoder.decode();
-    for (auto it = finder.pts.begin(); it != finder.pts.end(); it++) {
-        Point2f p = *it;
+    vector<FinderPoint> resultPoints = detectorResult.getResultPoints();
+    for (auto it = resultPoints.begin(); it != resultPoints.end(); it++) {
+        FinderPoint fp = *it;
+        Point2f p = Point2f(fp.getX(), fp.getY());
         circle(img, p, 3, Scalar(0,255,0));
+//        printf("(%f, %f)\n",p.x,p.y);
     }
-    for (auto it = detector.viewer.begin(); it != detector.viewer.end(); it++) {
-        Point2f p2 = *it;
-        circle(img, p2, 3, Scalar(255,0,0));
-    }
+
     Point pTest = Point(41,52);
 //    if (imgBW.at<uchar>(pTest) > 128) printf("ha\n");
 //    circle(img, pTest, 2, Scalar(0,255,0));
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/BW.png", imgBW);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/test.png", testForDecode);
     
-//    imshow("imgBW.png", imgBW);
+    imshow("imgBW.png", imgBW);
     waitKey(0);
     return 0;
 }

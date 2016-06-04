@@ -14,7 +14,7 @@ private:
     vector<FinderPoint> resultPoints;
     BitMatrix bits;
 public:
-    DetectorResult(const vector<FinderPoint> &resultPoints, const BitMatrix &bits);
+    DetectorResult(const vector<FinderPoint> resultPoints, const BitMatrix &bits);
 
     vector<FinderPoint> getResultPoints() const {
         return resultPoints;

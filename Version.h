@@ -23,6 +23,9 @@ public:
     int getVersionNumber();
     bool findAlignmentInRegion(Mat& image, float overallEstModuleSize, int estAlignmentX, int estAlignmentY,
                                     float allowanceFactor);
+    int getNumBlocks(int ecLevel);
+
+    int getNumEcCodewords(int ecLevel);
 };
 
 

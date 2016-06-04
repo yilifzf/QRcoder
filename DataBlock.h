@@ -6,13 +6,15 @@
 #define QRCODECPP_DATABLOCK_H
 
 #include <vector>
+#include "Version.h"
+
 using namespace std;
 
 class DataBlock {
     int numDataCodewords_;
     vector<char> codewords_;
 public:
-    static vector<DataBlock> getDataBlocks(vector<char> &codewords, int version, int ecLevel);
+    static vector<DataBlock> getDataBlocks(vector<char> &codewords, Version &version, int ecLevel);
 
     int getNumDataCodewords() const {
         return numDataCodewords_;

@@ -135,7 +135,7 @@ bool Version::handlePossibleCenter(Mat &image, vector<int> stateCount, int i, in
         FinderPoint newCenter = FinderPoint(centerJ, centerI);
         AlignmentPoints.push_back(FinderPoint(centerJ, centerI));
 //        printf("%d\n",AlignmentPoints.size());
-        printf("Created alignment center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
+//        printf("Created alignment center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
         return true;
     }
     return false;

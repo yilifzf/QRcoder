@@ -26,7 +26,7 @@ FormatInfo::FormatInfo(BitMatrix &bits) {
             formatBits1 |= (1 << (14 - j));
         }
     }
-    printf("%X\n", formatBits1);
+//    printf("%X\n", formatBits1);
     //
     int dimension = bits.getDimension();
     int formatBits2 = 0;
@@ -40,10 +40,9 @@ FormatInfo::FormatInfo(BitMatrix &bits) {
             formatBits2 |= (1 << (i - dimension + 15));
         }
     }
-    printf("%X\n", formatBits2);
+//    printf("%X\n", formatBits2);
     if (formatBits1 != formatBits2) {
         printf("bad format\n");
-
     }
     int data = formatBits1 >> 10;
     ErrorCorrectionLevel = ((data >> 3) ^ 2) ^ 1;

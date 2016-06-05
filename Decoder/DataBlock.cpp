@@ -13,7 +13,7 @@ vector<DataBlock> DataBlock::getDataBlocks(vector<char> &codewords, Version &ver
     int DataCodewordsNum = codewords.size() - ecCodewordsNum;
     int DataCodewordsInBlock = DataCodewordsNum / totalBlocks;
     int ECcodewordsInBlock = ecCodewordsNum / totalBlocks;
-    printf("Version = %d, ecLevel = %d\n", version.getVersionNumber(), ecLevel);
+//    printf("Version = %d, ecLevel = %d\n", version.getVersionNumber(), ecLevel);
 //    if (version == 4 && ecLevel == 2) {
 //        totalBlocks = 4;
 //        DataCodewordsNum = 36;

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "DetectorResult.h"
 #include "FormatInfo.h"
+#include "DecoderResult.h"
 
 class Decoder {
 private:
@@ -25,7 +26,7 @@ public:
 
     Decoder(DetectorResult& detectorResult);
     void releaseMask(int maskPattern);
-    void decode();
+    DecoderResult decode();
 };
 
 #endif /* Decoder_hpp */

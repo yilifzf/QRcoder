@@ -4,15 +4,15 @@ project(QRcodeCPP)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES
-    Decoder.cpp
-    Decoder.hpp
-    Finder.cpp
-    Finder.hpp
-    FinderPoint.cpp
-    FinderPoint.hpp
-    FinderResult.cpp
-    FinderResult.hpp
-    main.cpp Detector.cpp Detector.h Version.cpp Version.h DetectorResult.cpp DetectorResult.h FormatInfo.cpp FormatInfo.h BitMatrix.cpp BitMatrix.h DataBlock.cpp DataBlock.h)
+        Decoder/Decoder.cpp
+        Decoder/Decoder.hpp
+        Detector/Finder.cpp
+        Detector/Finder.hpp
+        Detector/FinderPoint.cpp
+        Detector/FinderPoint.hpp
+        Detector/FinderResult.cpp
+        Detector/FinderResult.hpp
+    main.cpp Detector/Detector.cpp Detector/Detector.h Version.cpp Version.h Detector/DetectorResult.cpp Detector/DetectorResult.h Decoder/FormatInfo.cpp Decoder/FormatInfo.h BitMatrix.cpp BitMatrix.h Decoder/DataBlock.cpp Decoder/DataBlock.h QRcodeReader.cpp QRcodeReader.h Decoder/DecoderResult.cpp Decoder/DecoderResult.h Binarizer.cpp Binarizer.h)
 
 add_executable(QRcodeCPP ${SOURCE_FILES})
 

@@ -19,9 +19,9 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
         printf("bad module size\n");
         exit(1);
     }
-    printf("ModuleSize : %f\n", moduleSize);
+//    printf("ModuleSize : %f\n", moduleSize);
     int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize);
-    printf("dimension : %d\n", dimension);
+//    printf("dimension : %d\n", dimension);
     Version version = Version(dimension);
     int modulesBetweenFPCenters = version.getDimensionForVersion() - 7;
 
@@ -56,38 +56,31 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
     for (auto it = alignmentPattern.begin(); it != alignmentPattern.end(); ++it) {
         resultPoints.push_back(*it);
     }
+    if (resultPoints.size() < 4 && version.getVersionNumber() > 1) {
+        printf("can't find alignment pattern\n");
+        exit(1);
+    }
 //    printf("rs:%d\n",resultPoints.size());
     Mat transform = getTransform(resultPoints, dimension, moduleSize);
     Mat reverseTransform = getReverseTransform(resultPoints, dimension, moduleSize);
     Mat output;
     warpPerspective(image,output,transform,output.size());
-    cv::imshow("transform", output);
-
-
-    // test:
-//    vector<Point2f> test;
-//    test.push_back(Point2f(alignmentPattern[0].getX(), alignmentPattern[0].getY()));
-//    vector<Point2f> testOut;
-//    perspectiveTransform(test,testOut,reverseTranform);
-//    printf("(%f, %f)\n", testOut[0].x, testOut[0].y);
-//    circle(output, testOut[0], 2, Scalar(255,255,255));
-
-    //
+//    cv::imshow("transform", output);
 
     // Now we sample the image to a matrix.
     sampleGrid(reverseTransform, bitMatrix, moduleSize);
 //    RawSampleGrid(topLeft, topRight, bottomLeft, alignmentPattern[0], bitMatrix);
 
-//    if (bitMatrix[0]) {
+//    if (bitMatrix[0]) {d
 //                printf("X\n");
 //    }
 
     //show for debug
     ///////
     BitMatrix bits = BitMatrix(bitMatrix, dimension);
-    bits.display();
+//    bits.display();
 
-    DetectorResult result = DetectorResult(resultPoints, bits);
+    DetectorResult result = DetectorResult(resultPoints, bits, moduleSize, dimension);
     return result;
 }
 

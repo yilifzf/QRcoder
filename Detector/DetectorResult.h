@@ -13,8 +13,18 @@ class DetectorResult {
 private:
     vector<FinderPoint> resultPoints;
     BitMatrix bits;
+    float moduleSize;
+    int dimension;
 public:
-    DetectorResult(const vector<FinderPoint> resultPoints, const BitMatrix &bits);
+    float getModuleSize() const {
+        return moduleSize;
+    }
+
+    int getDimension() const {
+        return dimension;
+    }
+
+    DetectorResult(const vector<FinderPoint> resultPoints, const BitMatrix &bits, int moduleSize, int dimension);
 
     vector<FinderPoint> getResultPoints() const {
         return resultPoints;

@@ -6,25 +6,46 @@
 #include "Detector.h"
 #include "Finder.hpp"
 #include "Decoder.hpp"
+#include "QRcodeReader.h"
+#include "Binarizer.h"
 //#include <string>
 using namespace std;
 using namespace cv;
 int main(int argc, char** argv) {
+//
     if (argc <= 1) {
         cerr << "Illegal argument" << endl;
         exit(1);
     }
-    string file = argv[1];
-    cout << file << endl;
-    Mat img = imread(file);
-    Mat imgBW;
-    Mat testForDecode(200, 200, CV_8UC3, Scalar(255,255,255));
-    cvtColor(img, imgBW, CV_BGR2GRAY);
-    threshold(imgBW, imgBW, 128, 255, THRESH_BINARY);
-    Finder finder = Finder(imgBW);
-    FinderResult fr = finder.find();
-    Detector detector = Detector(imgBW);
-    DetectorResult detectorResult = detector.processFinderPatternInfo(fr);
+    bool more;
+    int count = 1;
+
+//    printf("%d\n",argc);
+    if (argc == 2) {
+        more = false;
+    }
+    if (argc == 3) {
+        string option = argv[1];
+        if (option.compare("--more") == 0) {
+            more = true;
+        }
+        count++;
+    }
+    string filename = argv[count];
+//    cout << filename << endl;
+    Mat img = imread(filename);
+//    namedWindow("original",2);
+
+    QRcodeReader reader(img, more);
+    reader.decode();
+//    Mat gray;
+//    cvtColor(img, gray, CV_BGR2GRAY);
+//    imshow("orignial",gray);
+//    Binarizer binarizer(gray);
+//    gray = binarizer.getBlackMatrix();
+//    imshow("after",gray);
+//    waitKey(0);
+
 //    test bits:
 //    BitMatrix bits = detectorResult.getBits();
 //    int dim = bits.getDimension();
@@ -37,30 +58,23 @@ int main(int argc, char** argv) {
 //
 //    }
 
+//decode:
+
+
+//    Point pTest = Point(116, 65);
+////    if (imgBW.at<uchar>(pTest) > 128) printf("ha\n");
+//    circle(imgBW, pTest, 2, Scalar(0,0,0));
 //
-    Decoder decoder = Decoder(detectorResult);
-    decoder.decode();
-    vector<FinderPoint> resultPoints = detectorResult.getResultPoints();
-    for (auto it = resultPoints.begin(); it != resultPoints.end(); it++) {
-        FinderPoint fp = *it;
-        Point2f p = Point2f(fp.getX(), fp.getY());
-        circle(img, p, 3, Scalar(0,255,0));
-//        printf("(%f, %f)\n",p.x,p.y);
-    }
-
-    Point pTest = Point(41,52);
-//    if (imgBW.at<uchar>(pTest) > 128) printf("ha\n");
-//    circle(img, pTest, 2, Scalar(0,255,0));
-
-    namedWindow("code", 1);
-//    imshow("test.png",testForDecode);
-    imshow("code.png", img);
-//    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findHorizonPattern.png", img);
-//    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findPattern.png", img);
+//
+////    imshow("test.png",testForDecode);
+//    imshow("code.png", img);
+////    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findHorizonPattern.png", img);
+////    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/findPattern.png", img);
 //    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/BW.png", imgBW);
-//    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/test.png", testForDecode);
-    
-    imshow("imgBW.png", imgBW);
-    waitKey(0);
+////    imwrite("/Users/fzf_air/code/2016/QRcodeCPP/test.png", testForDecode);
+//
+
+//    imshow("test.png", testHist);
+
     return 0;
 }

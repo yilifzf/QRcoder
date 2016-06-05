@@ -27,10 +27,11 @@ FinderResult Finder::find() {
         stateCount[3] = 0;
         stateCount[4] = 0;
         currentState = 0;
-        uchar* ptr = image.ptr<uchar>(row);
+//        uchar* ptr = image.ptr<uchar>(row);
         for(int col=0; col < image.cols; col++)
         {
-            if(ptr[col] < 128)
+            Point p = Point(col, row);
+            if(image.at<uchar>(p) < 128)
             {
                 // We're at a black pixel
                 if((currentState & 0x1)==1)
@@ -175,7 +176,7 @@ bool Finder::handlePossibleCenter(int* stateCount, int row, int col) {
             if (!found) {
                 FinderPoint newCenter = FinderPoint(centerJ, centerI, estimatedModuleSize);
                 pts.push_back(Point2f(centerJ, centerI));
-                printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
+//                printf("Created new center: (%f, %f)\n", newCenter.getX(), newCenter.getY());
                 possibleFinderCenters.push_back(newCenter);
             }
             return true;
@@ -309,6 +310,10 @@ int Finder::getRowSkip() {
 }
 
 vector<FinderPoint> Finder::orderBestPatterns() {
+    if (possibleFinderCenters.size() < 3) {
+        printf("Can't detect finder pattern\n");
+        exit(1);
+    }
     float abDistance = distance(possibleFinderCenters[0], possibleFinderCenters[1]);
     float bcDistance = distance(possibleFinderCenters[1], possibleFinderCenters[2]);
     float acDistance = distance(possibleFinderCenters[0], possibleFinderCenters[2]);
@@ -355,60 +360,5 @@ float Finder::distance(FinderPoint& p1, FinderPoint& p2) {
     return sqrt(dx * dx + dy * dy);
 }
 
-//vector<FinderPoint> Finder::selectBestPattern() {
-//    int startSize = possibleFinderCenters.size();
-//
-//    if (startSize < 3) {
-//        // Couldn't find enough finder patterns
-//        printf("bad centers\n");
-//        exit(1);
-//    }
-//
-//    // Filter outlier possibilities whose module size is too different
-//    if (startSize > 3) {
-//        // But we can only afford to do so if we have at least 4 possibilities to choose from
-//        float totalModuleSize = 0.0f;
-//        float square = 0.0f;
-//        for (int i = 0; i < startSize; i++) {
-//            float size = possibleFinderCenters[i].getEstimatedModuleSize();
-//            totalModuleSize += size;
-//            square += size * size;
-//        }
-//        float average = totalModuleSize / (float) startSize;
-//        float stdDev = sqrt(square / startSize - average * average);
-//
-//        sort(possibleFinderCenters.begin(), possibleFinderCenters.end(), FurthestFromAverageComparator(average));
-//
-//        float limit = max(0.2f * average, stdDev);
-//
-//        for (size_t i = 0; i < possibleFinderCenters.size() && possibleFinderCenters.size() > 3; i++) {
-//            if (abs(possibleFinderCenters[i].getEstimatedModuleSize() - average) > limit) {
-//                possibleFinderCenters.erase(possibleFinderCenters.begin()+i);
-//                i--;
-//            }
-//        }
-//    }
-//
-//    if (possibleFinderCenters.size() > 3) {
-//        // Throw away all but those first size candidate points we found.
-//        float totalModuleSize = 0.0f;
-//        for (size_t i = 0; i < possibleFinderCenters.size(); i++) {
-//            float size = possibleFinderCenters[i].getEstimatedModuleSize();
-//            totalModuleSize += size;
-//        }
-//        float average = totalModuleSize / (float) possibleFinderCenters.size();
-//        sort(possibleFinderCenters.begin(), possibleFinderCenters.end(), CenterComparator(average));
-//    }
-//
-//    if (possibleFinderCenters.size() > 3) {
-//        possibleFinderCenters.erase(possibleFinderCenters.begin()+3,possibleFinderCenters.end());
-//    }
-//
-//    vector<Ref<FinderPattern> > result(3);
-//    result[0] = possibleFinderCenters[0];
-//    result[1] = possibleFinderCenters[1];
-//    result[2] = possibleFinderCenters[2];
-//    return result;
-//}
 
 

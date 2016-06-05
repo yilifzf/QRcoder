@@ -20,7 +20,7 @@ public:
         return numDataCodewords_;
     }
 
-    const vector<char> &getCodewords() const {
+    vector<char> getCodewords() const {
         return codewords_;
     }
 };

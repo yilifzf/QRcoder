@@ -7,7 +7,7 @@
 
 #include <cv.h>
 #include "FinderResult.hpp"
-#include "Version.h"
+#include "../Version.h"
 #include "DetectorResult.h"
 
 using namespace cv;

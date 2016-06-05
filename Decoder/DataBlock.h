@@ -6,7 +6,7 @@
 #define QRCODECPP_DATABLOCK_H
 
 #include <vector>
-#include "Version.h"
+#include "../Version.h"
 
 using namespace std;
 

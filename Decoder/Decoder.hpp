@@ -10,7 +10,7 @@
 #define Decoder_hpp
 
 #include <stdio.h>
-#include "DetectorResult.h"
+#include "../Detector/DetectorResult.h"
 #include "FormatInfo.h"
 #include "DecoderResult.h"
 

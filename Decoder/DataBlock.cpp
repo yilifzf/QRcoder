@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include "DataBlock.h"
-#include "Version.h"
+#include "../Version.h"
 
 vector<DataBlock> DataBlock::getDataBlocks(vector<char> &codewords, Version &version, int ecLevel) {
 //    shoudl encapsulate it to Version

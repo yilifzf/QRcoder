@@ -6,7 +6,7 @@
 #define QRCODECPP_DETECTORRESULT_H
 #include <vector>
 #include "FinderPoint.hpp"
-#include "BitMatrix.h"
+#include "../BitMatrix.h"
 
 using namespace std;
 class DetectorResult {

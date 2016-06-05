@@ -6,7 +6,7 @@
 #define QRCODECPP_VERSION_H
 #include <cv.h>
 #include <vector>
-#include "FinderPoint.hpp"
+#include "Detector/FinderPoint.hpp"
 
 using namespace cv;
 class Version {

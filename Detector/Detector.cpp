@@ -64,7 +64,7 @@ DetectorResult Detector::processFinderPatternInfo(FinderResult fr) {
     Mat transform = getTransform(resultPoints, dimension, moduleSize);
     Mat reverseTransform = getReverseTransform(resultPoints, dimension, moduleSize);
     Mat output;
-    warpPerspective(image,output,transform,output.size());
+//    warpPerspective(image,output,transform,output.size());
 //    cv::imshow("transform", output);
 
     // Now we sample the image to a matrix.

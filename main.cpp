@@ -3,9 +3,9 @@
 #include <highgui.h>
 #include <iostream>
 
-#include "Detector.h"
-#include "Finder.hpp"
-#include "Decoder.hpp"
+#include "./Detector/Detector.h"
+#include "./Detector/Finder.hpp"
+#include "./Decoder/Decoder.hpp"
 #include "QRcodeReader.h"
 #include "Binarizer.h"
 //#include <string>

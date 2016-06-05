@@ -7,10 +7,10 @@
 
 #include <cv.h>
 #include <opencv2/opencv.hpp>
-#include "DetectorResult.h"
-#include "Detector.h"
-#include "Finder.hpp"
-#include "Decoder.hpp"
+//#include "Detector/DetectorResult.h"
+#include "Detector/Detector.h"
+#include "Detector/Finder.hpp"
+#include "Decoder/Decoder.hpp"
 
 using namespace cv;
 

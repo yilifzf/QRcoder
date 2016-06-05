@@ -6,7 +6,7 @@
 #define QRCODECPP_FORMATINFO_H
 
 #include <vector>
-#include "BitMatrix.h"
+#include "../BitMatrix.h"
 
 using namespace std;
 class FormatInfo {

@@ -10,8 +10,8 @@
 #include "Decoder.hpp"
 #include "FormatInfo.h"
 #include "DataBlock.h"
-#include "lib/rs.hpp"
-#include "Version.h"
+#include "../lib/rs.hpp"
+#include "../Version.h"
 #include "DecoderResult.h"
 
 Decoder::Decoder(DetectorResult &detectorResult) {
